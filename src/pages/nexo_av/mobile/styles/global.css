@@ -18,8 +18,8 @@ body.nexo-av-theme {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%; /* Prevenir zoom de texto en iOS */
@@ -32,6 +32,7 @@ body.nexo-av-theme-dark {
 
 /* ============================================
    MOBILE TYPOGRAPHY — Forzar Roboto en pantallas pequeñas
+   Safety net adicional al scoping de body class.
    ============================================ */
 @media (max-width: 550px) {
   body,
@@ -44,6 +45,73 @@ body.nexo-av-theme-dark {
   p, span, a, button, input, label {
     font-family: var(--font-sans) !important;
   }
+}
+
+/* ============================================
+   FONT — Controles interactivos
+   Cubre tablets mobile (550px–768px) que no
+   entran en la media query anterior.
+   ============================================ */
+body.nexo-av-theme button,
+body.nexo-av-theme input,
+body.nexo-av-theme select,
+body.nexo-av-theme textarea,
+body.nexo-av-theme label,
+body.nexo-av-theme-dark button,
+body.nexo-av-theme-dark input,
+body.nexo-av-theme-dark select,
+body.nexo-av-theme-dark textarea,
+body.nexo-av-theme-dark label {
+  font-family: var(--font-sans);
+}
+
+/* ============================================
+   SELECTION — Branding coherente al seleccionar texto
+   ============================================ */
+body.nexo-av-theme ::selection,
+body.nexo-av-theme-dark ::selection {
+  background-color: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
+}
+
+/* ============================================
+   FOCUS VISIBLE — Accesibilidad global (WCAG AA)
+   Cubre teclados Bluetooth y navegación por tab.
+   ============================================ */
+body.nexo-av-theme *:focus-visible,
+body.nexo-av-theme-dark *:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ============================================
+   HR — Separadores con tema
+   ============================================ */
+body.nexo-av-theme hr,
+body.nexo-av-theme-dark hr {
+  border-color: hsl(var(--border));
+  opacity: 0.5;
+}
+
+/* ============================================
+   TRANSITIONS — Defaults globales
+   Solo propiedades específicas para evitar
+   transiciones inesperadas al cambiar el tema.
+   Los componentes pueden usar transition-all
+   duration-200 de Tailwind para override.
+   ============================================ */
+body.nexo-av-theme button,
+body.nexo-av-theme a,
+body.nexo-av-theme input,
+body.nexo-av-theme select,
+body.nexo-av-theme textarea,
+body.nexo-av-theme-dark button,
+body.nexo-av-theme-dark a,
+body.nexo-av-theme-dark input,
+body.nexo-av-theme-dark select,
+body.nexo-av-theme-dark textarea {
+  transition: color 0.15s ease, background-color 0.15s ease,
+              border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
 /* ============================================
@@ -105,8 +173,74 @@ body.nexo-av-theme-dark {
 }
 
 /* ============================================
+   MOBILE STICKY HEADER
+   Header fijo en páginas de lista. Usa márgenes
+   negativos para "escapar" el padding de mobile-main-content
+   y extenderse al ancho completo del viewport.
+   Uso: <div className="mobile-sticky-header">
+   ============================================ */
+.mobile-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  flex-shrink: 0;
+  padding-top: 0.75rem;                          /* py-3 */
+  padding-bottom: 0.75rem;
+  padding-left: var(--mobile-padding);           /* px = var(--mobile-padding) */
+  padding-right: var(--mobile-padding);
+  margin-left: calc(-1 * var(--mobile-padding)); /* bleed al borde */
+  margin-right: calc(-1 * var(--mobile-padding));
+  margin-bottom: 0.5rem;                         /* mb-2 */
+  background-color: hsl(var(--background) / 0.95);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-bottom: 1px solid hsl(var(--border) / 0.4);
+}
+
+/* ============================================
+   MOBILE KPI GRID
+   Grid de métricas dentro del sticky header.
+   Uso base: <div className="mobile-kpi-grid mobile-kpi-grid-3">
+   ============================================ */
+.mobile-kpi-grid {
+  display: grid;
+  gap: var(--mobile-kpi-gap);       /* 0.5rem / gap-2 */
+  margin-bottom: var(--mobile-kpi-mb); /* 0.75rem / mb-3 */
+}
+
+.mobile-kpi-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mobile-kpi-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mobile-kpi-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* ============================================
+   MOBILE CONTENT SECTION
+   Sección de contenido dentro del scroll area.
+   Uso: <div className="mobile-section"> o mobile-section-compact
+   ============================================ */
+.mobile-section {
+  padding: var(--mobile-section-pad);            /* 1rem — px-4 py-4 */
+}
+
+.mobile-section-compact {
+  padding: var(--mobile-section-pad-compact);    /* 0.75rem 1rem — py-3 px-4 */
+}
+
+/* ============================================
+   MOBILE LIST
+   Espaciado estándar de listas de items.
+   Uso: añadir a mobile-scroll-area: className="mobile-scroll-area mobile-list"
+   ============================================ */
+.mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mobile-list-gap);   /* 0.5rem — space-y-2 */
+  padding-top: var(--mobile-list-pt); /* 0.25rem — pt-1 */
+}
+
+/* ============================================
    TOUCH OPTIMIZATIONS
-   touch-action ya definido globalmente aquí; no repetir inline.
+   touch-action definido globalmente aquí; no repetir inline
+   salvo en componentes que necesiten override específico.
    ============================================ */
 button,
 a,

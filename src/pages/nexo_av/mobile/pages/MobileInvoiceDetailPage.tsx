@@ -421,7 +421,7 @@ const MobileInvoiceDetailPage = () => {
   const fileName = `${displayNumber}.pdf`;
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       {/* ===== HEADER: 2 columnas (Atrás | Nombre) - SIN botón de acción ===== */}
       <div className="flex-shrink-0 px-4 py-3">
         <div className="flex items-center gap-2">
@@ -491,9 +491,9 @@ const MobileInvoiceDetailPage = () => {
       </div>
 
       {/* ===== CONTENIDO DEL TAB ===== */}
-      <div className="flex-1 min-h-0 overflow-y-auto pb-[80px]">
+      <div className="mobile-scroll-area">
         {activeTab === 'resumen' && (
-          <ResumenTab 
+          <ResumenTab
             invoice={invoice}
             client={client}
             project={project}
@@ -852,7 +852,7 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
   if (invoice.status !== "DRAFT") {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center min-h-[320px]">
-        <AlertCircle className="h-16 w-16 text-amber-500 mb-4" />
+        <AlertCircle className="h-16 w-16 text-muted-foreground mb-4" />
         <p className="text-foreground font-medium">PDF archivado no disponible</p>
         <p className="text-sm text-muted-foreground max-w-sm">
           Esta factura ya esta emitida y debe servirse desde SharePoint. Hay que revisar su archivado.
@@ -888,7 +888,7 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <Loader2 className="h-16 w-16 text-orange-500 mb-4 animate-spin" />
+        <Loader2 className="h-16 w-16 text-muted-foreground mb-4 animate-spin" />
         <p className="text-muted-foreground">Generando PDF...</p>
       </div>
     );
@@ -897,8 +897,8 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
-        <p className="text-red-400">{error}</p>
+        <AlertCircle className="h-16 w-16 text-destructive mb-4" />
+        <p className="text-destructive">{error}</p>
       </div>
     );
   }
@@ -953,8 +953,8 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
         <div
           className={cn(
             "flex-shrink-0 px-4 py-3 rounded-lg",
-            "bg-amber-500/10 border border-amber-500/30",
-            "text-amber-900 dark:text-amber-100 text-sm"
+            "bg-muted border-border",
+            "text-foreground text-sm"
           )}
         >
           <p className="mb-2">
@@ -965,8 +965,8 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
             disabled={!pdfUrl}
             className={cn(
               "h-9 px-4 flex items-center justify-center gap-2 rounded-full",
-              "text-sm font-medium bg-amber-500/20 hover:bg-amber-500/30",
-              "border border-amber-500/40 text-amber-900 dark:text-amber-100",
+              "text-sm font-medium bg-muted hover:bg-muted/80",
+              "border border-border text-foreground",
               "active:scale-95 transition-all",
               !pdfUrl && "opacity-50"
             )}
@@ -976,7 +976,7 @@ const PreviewTab = ({ invoice, lines, client, company, project, preferences, fil
             Abrir PDF en nueva pestaña
           </button>
         </div>
-        <div className="flex-1 min-h-0 bg-gray-800 rounded-lg overflow-hidden">
+        <div className="flex-1 min-h-0 bg-muted rounded-lg overflow-hidden">
           <iframe
             src={pdfUrl ?? undefined}
             className="w-full h-full rounded-lg border-0"

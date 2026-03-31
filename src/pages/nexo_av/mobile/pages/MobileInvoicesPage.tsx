@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/useDebounce";
-import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo, normalizeSalesDocumentStatus } from "@/constants/salesInvoiceStatuses";
+import { getSalesDocumentStatusInfo, calculatePaymentStatus, getPaymentStatusInfo, isOverdue, normalizeSalesDocumentStatus } from "@/constants/salesInvoiceStatuses";
 import { useToast } from "@/hooks/use-toast";
 
 interface Invoice {
@@ -130,47 +130,30 @@ const MobileInvoicesPage = () => {
 
   return (
     <div className="mobile-page-viewport">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-3 mb-4 flex-shrink-0">
-        <div className="bg-card border border-border rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-yellow-500/10 rounded-lg text-yellow-600">
-              <Clock className="h-3.5 w-3.5" />
+      {/* Sticky Header: KPIs + Search */}
+      <div className="mobile-sticky-header">
+        {/* KPI Cards */}
+        <div className="mobile-kpi-grid mobile-kpi-grid-3">
+          <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
+            <div className="p-1.5 bg-yellow-500/10 rounded-lg text-yellow-500">
+              <Clock className="h-4 w-4" />
             </div>
-            <span className="text-muted-foreground text-xs">Pendientes</span>
+            <span className="text-lg text-foreground font-semibold">{invoiceStats.pending}</span>
           </div>
-          <span className="text-lg text-foreground font-semibold">
-            {invoiceStats.pending}
-          </span>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-600">
-              <Receipt className="h-3.5 w-3.5" />
+          <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
+            <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-500">
+              <Receipt className="h-4 w-4" />
             </div>
-            <span className="text-muted-foreground text-xs">Emitidas</span>
+            <span className="text-lg text-foreground font-semibold">{invoiceStats.issued}</span>
           </div>
-          <span className="text-lg text-foreground font-semibold">
-            {invoiceStats.issued}
-          </span>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-green-500/10 rounded-lg text-green-600">
-              <CheckCircle className="h-3.5 w-3.5" />
+          <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
+            <div className="p-1.5 bg-green-500/10 rounded-lg text-green-500">
+              <CheckCircle className="h-4 w-4" />
             </div>
-            <span className="text-muted-foreground text-xs">Pagadas</span>
+            <span className="text-lg text-foreground font-semibold">{invoiceStats.paid}</span>
           </div>
-          <span className="text-lg text-foreground font-semibold">
-            {invoiceStats.paid}
-          </span>
         </div>
-      </div>
-
-      {/* Search Bar - SIN botón de crear */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/40 pb-3 mb-4 flex-shrink-0 -mx-[15px] px-[15px] pt-2">
+        {/* Search */}
         <div className="flex items-center gap-2">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -202,13 +185,16 @@ const MobileInvoicesPage = () => {
           invoices.map((invoice) => {
             const displayNumber = invoice.invoice_number || invoice.preliminary_number || 'Sin número';
             const docStatusInfo = getSalesDocumentStatusInfo(invoice.status);
-            const collectionStatus = calculateCollectionStatus(
+            const paymentStatus = calculatePaymentStatus(
               invoice.paid_amount || 0,
               invoice.total || 0,
               invoice.status
             );
-            const collectionInfo = getCollectionStatusInfo(collectionStatus);
-            
+            const overdue = isOverdue(invoice.status, paymentStatus, invoice.due_date);
+            const paymentInfo = overdue
+              ? { label: "Vencida", className: "status-error" }
+              : getPaymentStatusInfo(paymentStatus);
+
             return (
               <button
                 key={invoice.id}
@@ -223,59 +209,54 @@ const MobileInvoicesPage = () => {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    {/* Invoice Number & Status */}
-                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      <span className="text-xs font-mono text-muted-foreground">
+                    {/* Número + estado doc — badge ancho fijo */}
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-xs font-mono text-muted-foreground flex-shrink-0">
                         {displayNumber}
                       </span>
-                      <Badge 
-                        variant="outline" 
-                        className={cn(
-                          "sales-status-badge sales-status-badge--document",
-                          docStatusInfo.className, 
-                          "text-[10px] px-1.5 py-0"
-                        )}
+                      <Badge
+                        variant="outline"
+                        className={cn(docStatusInfo.className, "w-[64px] justify-center flex-shrink-0 text-[10px] px-1.5 py-0")}
                       >
                         {docStatusInfo.label}
                       </Badge>
-                      {collectionInfo && (
-                        <Badge 
-                          variant="outline" 
-                          className={cn(
-                            "sales-status-badge sales-status-badge--collection",
-                            collectionInfo.className,
-                            "text-[10px] px-1.5 py-0"
-                          )}
-                        >
-                          {collectionInfo.label}
-                        </Badge>
-                      )}
                     </div>
-                    
-                    {/* Client Name */}
+
+                    {/* Nombre cliente */}
                     <h3 className="font-medium text-foreground truncate mb-1">
                       {invoice.client_name}
                     </h3>
-                    
-                    {/* Project Name */}
+
+                    {/* Proyecto */}
                     {invoice.project_name && (
                       <p className="text-sm text-muted-foreground truncate">
                         📁 {invoice.project_name}
                       </p>
                     )}
-                    
-                    {/* Date */}
+
+                    {/* Fecha */}
                     {invoice.issue_date && (
                       <p className="text-xs text-muted-foreground/70 mt-1">
                         {formatDate(invoice.issue_date)}
                       </p>
                     )}
                   </div>
-                  
-                  <div className="flex flex-col items-end gap-2">
-                    <span className="text-sm font-semibold text-foreground">
-                      {formatCurrency(invoice.total)}
-                    </span>
+
+                  {/* Derecha: estado de pago + importe */}
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      {paymentInfo && (
+                        <Badge
+                          variant="outline"
+                          className={cn(paymentInfo.className, "w-[64px] justify-center text-[10px] px-1.5 py-0")}
+                        >
+                          {paymentInfo.label}
+                        </Badge>
+                      )}
+                      <span className="text-sm font-semibold text-foreground tabular-nums">
+                        {formatCurrency(invoice.total)}
+                      </span>
+                    </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground" />
                   </div>
                 </div>

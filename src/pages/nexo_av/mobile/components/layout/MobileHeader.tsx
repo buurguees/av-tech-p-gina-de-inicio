@@ -42,7 +42,7 @@ export const MobileHeader = ({
       if (pathname.match(/\/clients\/[^/]+$/)) return 'Detalle Cliente';
       return 'Clientes';
     }
-    if (pathname.includes('/scanner')) return 'Esc·ner';
+    if (pathname.includes('/scanner')) return 'Esc√°ner';
     if (pathname.includes('/quotes')) {
       if (pathname.includes('/new')) return 'Nuevo Presupuesto';
       if (pathname.match(/\/quotes\/[^/]+$/)) return 'Detalle Presupuesto';
@@ -67,14 +67,14 @@ export const MobileHeader = ({
       if (pathname.match(/\/expenses\/[^/]+$/)) return 'Detalle Gasto';
       return 'Gastos';
     }
-    if (pathname.includes('/settings')) return 'ConfiguraciÛn';
-    if (pathname.includes('/audit')) return 'AuditorÌa';
-    if (pathname.includes('/catalog')) return 'Cat·logo';
+    if (pathname.includes('/settings')) return 'Configuraci√≥n';
+    if (pathname.includes('/audit')) return 'Auditor√≠a';
+    if (pathname.includes('/catalog')) return 'Cat√°logo';
     if (pathname.includes('/calculator')) return 'Calculadora';
     if (pathname.includes('/mapa')) return 'Mapa';
     if (pathname.includes('/technicians')) {
-      if (pathname.match(/\/technicians\/[^/]+$/)) return 'Detalle TÈcnico';
-      return 'TÈcnicos';
+      if (pathname.match(/\/technicians\/[^/]+$/)) return 'Detalle T√©cnico';
+      return 'T√©cnicos';
     }
     if (pathname.includes('/suppliers')) return 'Proveedores';
     if (pathname.includes('/users')) return 'Usuarios';
@@ -85,7 +85,7 @@ export const MobileHeader = ({
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 bg-background/92 backdrop-blur-xl border-b border-border/60"
+      className="mobile-site-header fixed top-0 left-0 right-0 z-50 bg-background/92 backdrop-blur-xl border-b border-border/60"
       style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
         height: 'calc(var(--mobile-header-height) + env(safe-area-inset-top, 0px))'

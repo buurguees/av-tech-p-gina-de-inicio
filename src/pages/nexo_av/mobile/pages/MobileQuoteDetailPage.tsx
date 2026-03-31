@@ -625,7 +625,7 @@ const MobileQuoteDetailPage = () => {
   const actionButtons = getActionButtons();
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       {/* ===== HEADER: 3 columnas (Atrás | Nombre | Acciones) ===== */}
       <div className="flex-shrink-0 px-4 py-3">
         <div className="flex items-center gap-2">
@@ -725,9 +725,9 @@ const MobileQuoteDetailPage = () => {
       </div>
 
       {/* ===== CONTENIDO DEL TAB ===== */}
-      <div className="flex-1 min-h-0 overflow-y-auto pb-[80px]">
+      <div className="mobile-scroll-area">
         {activeTab === 'resumen' && (
-          <ResumenTab 
+          <ResumenTab
             quote={quote}
             client={client}
             project={project}
@@ -1171,8 +1171,8 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
         <div
           className={cn(
             "flex-shrink-0 px-4 py-3 rounded-lg",
-            "bg-amber-500/10 border border-amber-500/30",
-            "text-amber-900 dark:text-amber-100 text-sm"
+            "bg-muted border-border",
+            "text-foreground text-sm"
           )}
         >
           <p className="mb-2">
@@ -1182,8 +1182,8 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
             onClick={() => pdfUrl && window.open(pdfUrl, "_blank")}
             className={cn(
               "h-9 px-4 flex items-center justify-center gap-2 rounded-full",
-              "text-sm font-medium bg-amber-500/20 hover:bg-amber-500/30",
-              "border border-amber-500/40 text-amber-900 dark:text-amber-100",
+              "text-sm font-medium bg-muted hover:bg-muted/80",
+              "border border-border text-foreground",
               "active:scale-95 transition-all"
             )}
             style={{ touchAction: "manipulation" }}
@@ -1192,7 +1192,7 @@ const PreviewTab = ({ quote, lines, client, company, project, fileName }: Previe
             Abrir PDF en nueva pestaña
           </button>
         </div>
-        <div className="flex-1 min-h-[250px] bg-zinc-900 rounded-lg overflow-hidden">
+        <div className="flex-1 min-h-[250px] bg-muted rounded-lg overflow-hidden">
           <iframe
             src={pdfUrl ?? undefined}
             className="w-full h-full min-h-[250px] rounded-lg border border-border"

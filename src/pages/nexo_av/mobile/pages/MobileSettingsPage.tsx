@@ -203,6 +203,8 @@ const MobileSettingsPage = () => {
   }
 
   return (
+    <div className="mobile-page-viewport">
+    <div className="mobile-scroll-area">
     <div className="space-y-6 pb-4">
       {/* User Card */}
       <div className="bg-card border border-border rounded-2xl p-4">
@@ -272,11 +274,13 @@ const MobileSettingsPage = () => {
       <Button
         onClick={handleLogout}
         variant="outline"
-        className="w-full h-12 text-red-500 border-red-500/20 hover:bg-red-500/10"
+        className="w-full h-12 text-destructive border-destructive/20 hover:bg-destructive/10"
       >
         <LogOut className="h-5 w-5 mr-2" />
         Cerrar sesión
       </Button>
+    </div>
+    </div>
     </div>
   );
 };

@@ -97,11 +97,11 @@ const MobileProjectsPage = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       {/* Fixed Header Section: KPIs + Search - Always visible, never scrolls */}
-      <div className="sticky top-0 z-20 flex-shrink-0 py-3 bg-background/95 backdrop-blur-sm border-b border-border/40 -mx-4 px-4 mb-2">
+      <div className="mobile-sticky-header">
         {/* KPI Cards - Compact: Icon + Number only */}
-        <div className="grid grid-cols-4 gap-2 mb-3">
+        <div className="mobile-kpi-grid mobile-kpi-grid-4">
           {/* Planificados - Azul */}
           <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
             <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-500">
@@ -173,7 +173,7 @@ const MobileProjectsPage = () => {
       </div>
 
       {/* Projects List - Scrollable area */}
-      <div className="flex-1 min-h-0 space-y-2 pt-1 pb-4 w-full">
+      <div className="mobile-scroll-area space-y-2 pt-1">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

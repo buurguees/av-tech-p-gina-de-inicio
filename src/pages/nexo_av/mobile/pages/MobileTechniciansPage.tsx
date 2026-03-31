@@ -86,29 +86,23 @@ const MobileTechniciansPage = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       {/* Header: KPIs + Search */}
       <div
-        className="flex-shrink-0 py-3 px-3 w-full bg-background/95 supports-[backdrop-filter]:backdrop-blur-sm"
+        className="mobile-sticky-header"
       >
-        <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="mobile-kpi-grid mobile-kpi-grid-2">
           <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
             <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-500">
               <Users className="h-4 w-4" />
             </div>
-            <div>
-              <span className="text-lg text-foreground font-semibold">{stats.total}</span>
-              <p className="text-[10px] text-muted-foreground">Total</p>
-            </div>
+            <span className="text-lg text-foreground font-semibold">{stats.total}</span>
           </div>
           <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
             <div className="p-1.5 bg-green-500/10 rounded-lg text-green-500">
               <UserRound className="h-4 w-4" />
             </div>
-            <div>
-              <span className="text-lg text-foreground font-semibold">{stats.active}</span>
-              <p className="text-[10px] text-muted-foreground">Activos</p>
-            </div>
+            <span className="text-lg text-foreground font-semibold">{stats.active}</span>
           </div>
         </div>
 
@@ -119,14 +113,14 @@ const MobileTechniciansPage = () => {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Buscar técnicos..."
-              className="pl-9 h-8 bg-card border-border text-sm"
+              className="pl-9 h-10 bg-card border-border text-sm"
             />
           </div>
         </div>
       </div>
 
       {/* List */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pt-3 pb-[80px] w-full h-full px-[15px]">
+      <div className="mobile-scroll-area space-y-2 pt-3">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -161,7 +155,7 @@ const MobileTechniciansPage = () => {
                       <span className="text-xs font-mono text-muted-foreground">
                         {tech.technician_number}
                       </span>
-                      <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", typeInfo.bgColor, typeInfo.color)}>
+                      <Badge variant="outline" className={cn("w-[72px] justify-center flex-shrink-0 text-[10px] px-1.5 py-0", typeInfo.bgColor, typeInfo.color)}>
                         {typeInfo.label}
                       </Badge>
                     </div>

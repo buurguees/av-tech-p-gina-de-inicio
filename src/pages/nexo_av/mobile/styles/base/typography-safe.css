@@ -1,6 +1,8 @@
 /* ============================================
    NEXO AV MOBILE - TYPOGRAPHY SAFE
-   Jerarquia ligera sin romper utilidades de Tailwind
+   Jerarquía tipográfica adaptada a móvil.
+   Usa !important para prevalecer sobre Tailwind
+   base y shadcn/ui, igual que desktop.
    ============================================ */
 
 body.nexo-av-theme,
@@ -8,37 +10,73 @@ body.nexo-av-theme-dark {
   font-family: var(--font-sans);
 }
 
+/* H1 — Títulos principales de página */
 body.nexo-av-theme h1,
 body.nexo-av-theme-dark h1 {
   color: hsl(var(--foreground)) !important;
+  font-family: var(--font-sans) !important;
   font-size: clamp(1.25rem, 4vw, 1.6rem) !important;
   font-weight: 600 !important;
   line-height: 1.15 !important;
   letter-spacing: -0.02em !important;
+  margin: 0 !important;
 }
 
+/* H2 — Subtítulos de sección */
 body.nexo-av-theme h2,
 body.nexo-av-theme-dark h2 {
   color: hsl(var(--foreground)) !important;
+  font-family: var(--font-sans) !important;
   font-size: clamp(1rem, 3.4vw, 1.25rem) !important;
   font-weight: 600 !important;
   line-height: 1.2 !important;
+  margin: 0 !important;
 }
 
+/* H3 — Subtítulos de bloque o card */
 body.nexo-av-theme h3,
-body.nexo-av-theme-dark h3,
+body.nexo-av-theme-dark h3 {
+  color: hsl(var(--foreground)) !important;
+  font-family: var(--font-sans) !important;
+  font-size: clamp(0.875rem, 2.8vw, 1rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+}
+
+/* H4 — Labels de grupo o sección compacta */
 body.nexo-av-theme h4,
 body.nexo-av-theme-dark h4 {
   color: hsl(var(--foreground)) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
 }
 
+/* P — Texto descriptivo */
 body.nexo-av-theme p,
-body.nexo-av-theme-dark p,
+body.nexo-av-theme-dark p {
+  color: hsl(var(--text-secondary)) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+}
+
+/* Small — Metadata, fechas, etiquetas secundarias */
 body.nexo-av-theme small,
 body.nexo-av-theme-dark small {
-  color: hsl(var(--text-secondary)) !important;
+  color: hsl(var(--text-muted)) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.75rem !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
 }
 
+/* Utility classes */
 body.nexo-av-theme .text-muted,
 body.nexo-av-theme-dark .text-muted {
   color: hsl(var(--text-muted)) !important;
@@ -49,6 +87,7 @@ body.nexo-av-theme-dark .text-secondary {
   color: hsl(var(--text-secondary)) !important;
 }
 
+/* Links sin clase — heredan color primario */
 body.nexo-av-theme a:not([class]),
 body.nexo-av-theme-dark a:not([class]) {
   color: hsl(var(--primary)) !important;

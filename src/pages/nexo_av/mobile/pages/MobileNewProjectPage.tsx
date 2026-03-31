@@ -232,7 +232,7 @@ const MobileNewProjectPage = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       {/* ===== HEADER ===== */}
       <div className="flex-shrink-0 px-4 py-3">
         <div className="flex items-center gap-2">
@@ -261,7 +261,7 @@ const MobileNewProjectPage = () => {
       </div>
 
       {/* ===== FORMULARIO ===== */}
-      <div className="flex-1 min-h-0 overflow-y-auto pb-[80px]">
+      <div className="mobile-scroll-area">
         <div className="px-4 py-4 space-y-4">
           {/* ===== SECCIÓN: ASIGNACIÓN ===== */}
           <SectionCard title="Asignación" icon={Users}>

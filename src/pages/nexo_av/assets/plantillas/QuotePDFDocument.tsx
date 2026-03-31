@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   page: {
     paddingTop: 40,
     paddingHorizontal: 40,
-    paddingBottom: 130,
+    paddingBottom: 100,
     fontSize: 10,
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff",
@@ -502,20 +502,22 @@ export const QuotePDFDocument = ({ quote, lines, client, company, project, docum
           </View>
         )}
 
-        {/* Table */}
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.headerText, { width: 55 }]}>REF.</Text>
-            <Text style={[styles.headerText, { flex: hasDiscount ? 2.2 : 2.7 }]}>CONCEPTO</Text>
-            <Text style={[styles.headerText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>CANT.</Text>
-            <Text style={[styles.headerText, styles.colPrice]}>PRECIO</Text>
-            {hasDiscount && (
-              <Text style={[styles.headerText, styles.colDiscount]}>DTO %</Text>
-            )}
-            <Text style={[styles.headerText, styles.colTax]}>IVA</Text>
-            <Text style={[styles.headerText, styles.colTotal]}>SUBTOTAL</Text>
-          </View>
+        {/* Table Header - separado del contenedor de filas para evitar que react-pdf
+            trate el bloque entero como indivisible cuando hay wrap={false} en las filas */}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.headerText, { width: 55 }]}>REF.</Text>
+          <Text style={[styles.headerText, { flex: hasDiscount ? 2.2 : 2.7 }]}>CONCEPTO</Text>
+          <Text style={[styles.headerText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>CANT.</Text>
+          <Text style={[styles.headerText, styles.colPrice]}>PRECIO</Text>
+          {hasDiscount && (
+            <Text style={[styles.headerText, styles.colDiscount]}>DTO %</Text>
+          )}
+          <Text style={[styles.headerText, styles.colTax]}>IVA</Text>
+          <Text style={[styles.headerText, styles.colTotal]}>SUBTOTAL</Text>
+        </View>
 
+        {/* Table Rows - contenedor explícitamente wrappable */}
+        <View style={{ marginBottom: 25 }} wrap={true}>
           {lines.map((line) => (
             <View key={line.id} style={styles.tableRow} wrap={false}>
               <Text style={[styles.cellText, { width: 55, fontSize: 7, color: "#888", fontFamily: "Courier" }]}>

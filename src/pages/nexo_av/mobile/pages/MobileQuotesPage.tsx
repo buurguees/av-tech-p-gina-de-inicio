@@ -113,59 +113,36 @@ const MobileQuotesPage = () => {
 
   return (
     <div className="mobile-page-viewport">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-4 gap-2 mb-4 flex-shrink-0">
-        <div className="bg-card border border-border rounded-xl p-2.5">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <div className="p-1 bg-blue-500/10 rounded-lg text-blue-600">
-              <Send className="h-3 w-3" />
+      {/* Sticky Header: KPIs + Search */}
+      <div className="mobile-sticky-header">
+        {/* KPI Cards */}
+        <div className="mobile-kpi-grid mobile-kpi-grid-4">
+          <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
+            <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-500">
+              <Send className="h-4 w-4" />
             </div>
-            <span className="text-muted-foreground text-[10px]">Enviados</span>
+            <span className="text-lg text-foreground font-semibold">{quoteStats.sent}</span>
           </div>
-          <span className="text-base text-foreground font-semibold">
-            {quoteStats.sent}
-          </span>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-2.5">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <div className="p-1 bg-green-500/10 rounded-lg text-green-600">
-              <CheckCircle className="h-3 w-3" />
+          <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
+            <div className="p-1.5 bg-green-500/10 rounded-lg text-green-500">
+              <CheckCircle className="h-4 w-4" />
             </div>
-            <span className="text-muted-foreground text-[10px]">Aprobados</span>
+            <span className="text-lg text-foreground font-semibold">{quoteStats.approved}</span>
           </div>
-          <span className="text-base text-foreground font-semibold">
-            {quoteStats.approved}
-          </span>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-2.5">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <div className="p-1 bg-amber-500/10 rounded-lg text-amber-600">
-              <Clock className="h-3 w-3" />
+          <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
+            <div className="p-1.5 bg-amber-500/10 rounded-lg text-amber-500">
+              <Clock className="h-4 w-4" />
             </div>
-            <span className="text-muted-foreground text-[10px]">Vencidos</span>
+            <span className="text-lg text-foreground font-semibold">{quoteStats.expired}</span>
           </div>
-          <span className="text-base text-foreground font-semibold">
-            {quoteStats.expired}
-          </span>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-2.5">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <div className="p-1 bg-purple-500/10 rounded-lg text-purple-600">
-              <FileText className="h-3 w-3" />
+          <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
+            <div className="p-1.5 bg-purple-500/10 rounded-lg text-purple-500">
+              <FileText className="h-4 w-4" />
             </div>
-            <span className="text-muted-foreground text-[10px]">Borradores</span>
+            <span className="text-lg text-foreground font-semibold">{quoteStats.pending}</span>
           </div>
-          <span className="text-base text-foreground font-semibold">
-            {quoteStats.pending}
-          </span>
         </div>
-      </div>
-
-      {/* Search and Create Button */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/40 pb-3 mb-4 flex-shrink-0 -mx-4 px-4 pt-2">
+        {/* Search and Create Button */}
         <div className="flex items-center gap-2">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -224,42 +201,39 @@ const MobileQuotesPage = () => {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    {/* Quote Number & Status */}
+                    {/* Número + estado — badge ancho fijo */}
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-xs font-mono text-muted-foreground">
+                      <span className="text-xs font-mono text-muted-foreground flex-shrink-0">
                         {quote.quote_number}
                       </span>
-                      <Badge 
-                        variant="outline" 
-                        className={cn(
-                          statusInfo.className, 
-                          "text-[10px] px-1.5 py-0"
-                        )}
+                      <Badge
+                        variant="outline"
+                        className={cn(statusInfo.className, "w-[72px] justify-center flex-shrink-0 text-[10px] px-1.5 py-0")}
                       >
                         {statusInfo.label}
                       </Badge>
                     </div>
-                    
-                    {/* Client Name */}
+
+                    {/* Nombre cliente */}
                     <h3 className="font-medium text-foreground truncate mb-1">
                       {quote.client_name}
                     </h3>
-                    
-                    {/* Project Name */}
+
+                    {/* Proyecto */}
                     {quote.project_name && (
                       <p className="text-sm text-muted-foreground truncate">
                         📁 {quote.project_name}
                       </p>
                     )}
-                    
-                    {/* Date */}
+
+                    {/* Fecha */}
                     <p className="text-xs text-muted-foreground/70 mt-1">
                       {formatDate(quote.created_at)}
                     </p>
                   </div>
-                  
-                  <div className="flex flex-col items-end gap-2">
-                    <span className="text-sm font-semibold text-foreground">
+
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <span className="text-sm font-semibold text-foreground tabular-nums">
                       {formatCurrency(quote.total)}
                     </span>
                     <ChevronRight className="h-5 w-5 text-muted-foreground" />

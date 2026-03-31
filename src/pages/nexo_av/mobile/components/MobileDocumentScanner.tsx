@@ -129,6 +129,14 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
     animationFrameRef.current = requestAnimationFrame(detectDocument);
   }, [capturedImage]);
 
+  // Oculta header y navbar del layout mientras el escáner está abierto
+  useEffect(() => {
+    document.body.classList.add('scanning-active');
+    return () => {
+      document.body.classList.remove('scanning-active');
+    };
+  }, []);
+
   useEffect(() => {
     startCamera();
     return () => {
@@ -283,7 +291,7 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col">
       {/* Header */}
       <div className="flex-shrink-0 px-4 py-3 bg-black/80 backdrop-blur-md border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -304,7 +312,7 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
         </Button>
       </div>
 
-      {/* Camera View */}
+      {/* Camera View — ocupa todo el espacio restante, controles flotan encima */}
       <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
         {!capturedImage ? (
           <>
@@ -313,23 +321,34 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
               autoPlay
               playsInline
               muted
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
             {/* Overlay canvas for document detection */}
-            <canvas 
-              ref={overlayCanvasRef} 
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            <canvas
+              ref={overlayCanvasRef}
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none"
             />
-            {/* Guide when no document detected */}
+            {/* Guide frame — centrado con margen inferior para no solapar el botón */}
             {!documentDetected && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
-                <div className="w-full max-w-sm aspect-[1/1.4] border-2 border-dashed border-white/30 rounded-lg relative">
-                  <div className="absolute inset-0 bg-white/5" />
-                  <div className="absolute -top-10 left-0 right-0 text-center">
-                    <span className="text-[10px] font-medium text-white/70 uppercase tracking-wide bg-black/60 px-3 py-1 rounded-full backdrop-blur-md">
-                      Coloca el documento dentro del marco
-                    </span>
-                  </div>
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center pb-32">
+                {/* Dark vignette around guide */}
+                <div className="absolute inset-0 bg-black/40" style={{ maskImage: 'radial-gradient(ellipse 70% 80% at 50% 50%, transparent 60%, black 100%)' }} />
+                <div className="relative w-[76%] max-w-xs aspect-[1/1.41] rounded-xl">
+                  {/* Corner brackets */}
+                  {[
+                    'top-0 left-0 border-t-2 border-l-2 rounded-tl-xl',
+                    'top-0 right-0 border-t-2 border-r-2 rounded-tr-xl',
+                    'bottom-0 left-0 border-b-2 border-l-2 rounded-bl-xl',
+                    'bottom-0 right-0 border-b-2 border-r-2 rounded-br-xl',
+                  ].map((cls, i) => (
+                    <div key={i} className={cn('absolute w-8 h-8 border-white/80', cls)} />
+                  ))}
+                  {/* Scan line animation */}
+                  <motion.div
+                    className="absolute left-2 right-2 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent"
+                    animate={{ top: ['10%', '90%', '10%'] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                  />
                 </div>
               </div>
             )}
@@ -340,27 +359,30 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             src={capturedImage}
-            className="max-w-full max-h-full object-contain p-4"
+            className="w-full h-full object-contain"
+            style={{ paddingBottom: 'calc(7rem + env(safe-area-inset-bottom, 0px))' }}
           />
         )}
-      </div>
 
-      {/* Controls */}
-      <div
-        className="flex-shrink-0 px-6 bg-black/80 backdrop-blur-md flex flex-col items-center gap-4"
-        style={{ paddingTop: '1.5rem', paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
-      >
-        {!capturedImage ? (
-          <>
+        {/* Controles flotantes — gradiente sutil + botón sobre la cámara */}
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+          {/* Gradiente para legibilidad del botón sin tapar la imagen */}
+          <div className="h-40 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+        </div>
+        <div
+          className="absolute bottom-0 left-0 right-0 flex items-center justify-center pointer-events-auto"
+          style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+        >
+          {!capturedImage ? (
             <Button
               onClick={capture}
               disabled={isProcessing}
               className={cn(
                 "h-20 w-20 rounded-full bg-white text-black hover:bg-zinc-200",
-                "shadow-xl shadow-white/10 flex items-center justify-center",
+                "shadow-xl shadow-white/20 flex items-center justify-center",
                 "transition-all duration-200",
                 isProcessing && "animate-pulse",
-                documentDetected && "ring-4 ring-green-500/50"
+                documentDetected && "ring-4 ring-green-500/60"
               )}
             >
               <div className={cn(
@@ -374,35 +396,30 @@ const MobileDocumentScanner: React.FC<MobileDocumentScannerProps> = ({
                 )}
               </div>
             </Button>
-            <p className="text-white/60 text-xs text-center">
-              {documentDetected 
-                ? "Documento detectado. Pulsa para escanear."
-                : "Alinea el documento y pulsa para escanear"}
-            </p>
-          </>
-        ) : (
-          <div className="flex items-center gap-6">
-            <Button
-              onClick={handleRetry}
-              variant="outline"
-              disabled={isProcessing}
-              className="h-16 w-16 rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10"
-            >
-              <RefreshCw className="h-6 w-6" />
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              disabled={isProcessing}
-              className="h-20 w-20 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20"
-            >
-              {isProcessing ? (
-                <Loader2 className="h-8 w-8 animate-spin" />
-              ) : (
-                <Check className="h-8 w-8" />
-              )}
-            </Button>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center gap-6">
+              <Button
+                onClick={handleRetry}
+                variant="outline"
+                disabled={isProcessing}
+                className="h-16 w-16 rounded-full border-white/20 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+              >
+                <RefreshCw className="h-6 w-6" />
+              </Button>
+              <Button
+                onClick={handleConfirm}
+                disabled={isProcessing}
+                className="h-20 w-20 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/30"
+              >
+                {isProcessing ? (
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                ) : (
+                  <Check className="h-8 w-8" />
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

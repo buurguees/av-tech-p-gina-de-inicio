@@ -344,7 +344,7 @@ const MobileNewInvoicePage = () => {
   if (loading) return <div className="w-full h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       <div className="flex-shrink-0 px-4 py-3">
         <div className="flex items-center gap-2">
           <button
@@ -368,7 +368,7 @@ const MobileNewInvoicePage = () => {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto pb-[80px]">
+      <div className="mobile-scroll-area">
         <div className="px-4 py-4 space-y-4">
           <div className="bg-card border border-border rounded-xl p-4 space-y-4">
             <div className="space-y-1.5">

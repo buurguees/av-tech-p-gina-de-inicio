@@ -394,7 +394,7 @@ const MobileClientDetailPage = () => {
   const actionButton = getActionButton();
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       {/* ===== HEADER: 3 columnas (Atrás | Nombre | Acciones) ===== */}
       <div className="flex-shrink-0 px-4 py-3">
         <div className="flex items-center gap-2">
@@ -485,7 +485,7 @@ const MobileClientDetailPage = () => {
       </div>
 
       {/* ===== CONTENIDO DEL TAB ===== */}
-      <div className="flex-1 min-h-0 overflow-y-auto pb-[80px]">
+      <div className="mobile-scroll-area">
         {activeTab === 'informacion' && (
           <InformacionTab 
             client={client}

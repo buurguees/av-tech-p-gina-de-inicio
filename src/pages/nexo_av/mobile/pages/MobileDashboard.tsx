@@ -308,17 +308,17 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
           <div className="p-3 bg-primary/20 rounded-xl"><Euro className="h-6 w-6 text-primary" /></div>
         </div>
         <div className="mt-3 flex items-center gap-2 text-sm">
-          <TrendingUp className="h-4 w-4 text-emerald-500" />
+          <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           <span className="text-foreground font-medium">Resultado PyG: {marginPct}% margen</span>
         </div>
       </div>
 
       {/* KPIs grid */}
       <div className="grid grid-cols-2 gap-3">
-        <MiniKpi icon={TrendingUp} label="Ingreso neto" value={fmt(k.invoiced_net_amount)} color="bg-cyan-500/10 text-cyan-500" />
+        <MiniKpi icon={TrendingUp} label="Ingreso neto" value={fmt(k.invoiced_net_amount)} color="bg-[hsl(var(--status-info-bg))] text-[hsl(var(--status-info))]" />
         <MiniKpi icon={AlertCircle} label="Pendiente cobro" value={fmt(k.pending_collection)} color="bg-destructive/10 text-destructive" />
-        <MiniKpi icon={Banknote} label="IVA emitido" value={fmt(k.invoiced_tax_amount)} color="bg-violet-500/10 text-violet-500" />
-        <MiniKpi icon={CreditCard} label="Pagos pendientes" value={fmt(totalPending)} color="bg-amber-500/10 text-amber-500" />
+        <MiniKpi icon={Banknote} label="IVA emitido" value={fmt(k.invoiced_tax_amount)} color="bg-[hsl(var(--status-special-bg))] text-[hsl(var(--status-special))]" />
+        <MiniKpi icon={CreditCard} label="Pagos pendientes" value={fmt(totalPending)} color="bg-[hsl(var(--status-warning-bg))] text-[hsl(var(--status-warning))]" />
       </div>
 
       {/* Collection risk */}
@@ -332,9 +332,9 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
             <div className="text-lg font-bold text-destructive">{fmt(data.collection_risk.overdue.amount)}</div>
             <div className="text-[10px] text-muted-foreground">{data.collection_risk.overdue.count} facturas</div>
           </div>
-          <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+          <div className="bg-[hsl(var(--status-warning-bg))] border border-[hsl(var(--status-warning)_/_0.3)] rounded-lg p-3">
             <div className="text-[11px] text-muted-foreground mb-0.5">Vencen en 7 días</div>
-            <div className="text-lg font-bold text-amber-500">{fmt(data.collection_risk.due_7_days.amount)}</div>
+            <div className="text-lg font-bold text-[hsl(var(--status-warning))]">{fmt(data.collection_risk.due_7_days.amount)}</div>
             <div className="text-[10px] text-muted-foreground">{data.collection_risk.due_7_days.count} facturas</div>
           </div>
         </div>
@@ -344,8 +344,7 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
             <div className="text-[11px] text-muted-foreground font-medium">Top deudores</div>
             {data.collection_risk.top_debtors.slice(0, 5).map((d) => (
               <button key={d.client_id} onClick={() => navigate(`/nexo-av/${userId}/clients/${d.client_id}`)}
-                className="w-full flex justify-between items-center text-xs py-1 active:opacity-70"
-                style={{ touchAction: "manipulation" }}>
+                className="w-full flex justify-between items-center text-xs py-1 active:opacity-70">
                 <span className="text-foreground truncate max-w-[60%]">{d.client_name}</span>
                 <span className="font-semibold text-destructive">{fmt(d.total_debt)}</span>
               </button>
@@ -357,7 +356,7 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
       {/* Upcoming payments */}
       <div className="bg-card border border-border rounded-xl p-4 space-y-3">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <CalendarClock className="h-4 w-4 text-amber-500" /> Pagos próximos 7 días
+          <CalendarClock className="h-4 w-4 text-[hsl(var(--status-warning))]" /> Pagos próximos 7 días
         </h3>
         <MobilePaymentList title="Facturas de compra" icon={FileText} items={data.upcoming_payments?.purchase_invoices || []}
           renderItem={(item) => (
@@ -422,8 +421,7 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
           <h3 className="text-sm font-semibold text-foreground">Presupuestos grandes en negociación</h3>
           {data.operations.large_quotes_negotiation.map((q) => (
             <button key={q.id} onClick={() => navigate(`/nexo-av/${userId}/quotes/${q.id}`)}
-              className="w-full flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0 active:opacity-70"
-              style={{ touchAction: "manipulation" }}>
+              className="w-full flex justify-between items-center text-xs py-1.5 border-b border-border/50 last:border-0 active:opacity-70">
               <span className="text-foreground truncate max-w-[60%]">{q.client_name}</span>
               <span className="font-semibold text-primary">{fmt(q.total)}</span>
             </button>
@@ -435,9 +433,9 @@ const MobileAdminDashboard = ({ userName, userId, navigate }: DashboardProps) =>
       <div className="space-y-2">
         <h2 className="text-sm font-medium text-muted-foreground">Operativa</h2>
         <QuickAction icon={FolderKanban} label="Sites listos p/ facturar" stat={data.operations.sites_ready_to_invoice}
-          color="bg-emerald-500/10 text-emerald-500" onPress={() => navigate(`/nexo-av/${userId}/projects`)} />
+          color="bg-[hsl(var(--status-success-bg))] text-[hsl(var(--status-success))]" onPress={() => navigate(`/nexo-av/${userId}/projects`)} />
         <QuickAction icon={Clock} label="Proyectos en curso" stat={data.operations.projects_in_progress}
-          color="bg-blue-500/10 text-blue-500" onPress={() => navigate(`/nexo-av/${userId}/projects`)} />
+          color="bg-[hsl(var(--status-info-bg))] text-[hsl(var(--status-info))]" onPress={() => navigate(`/nexo-av/${userId}/projects`)} />
       </div>
     </div>
   );
@@ -487,10 +485,10 @@ const MobileManagerDashboard = ({ userName, userId, navigate }: DashboardProps) 
       <Greeting userName={userName} subtitle="Centro de instalaciones" />
 
       <div className="grid grid-cols-2 gap-3">
-        <MiniKpi icon={CalendarDays} label="Sites hoy" value={k.sites_today} color="bg-blue-500/10 text-blue-500" />
-        <MiniKpi icon={Clock} label="Próx. 7 días" value={k.sites_next_days} color="bg-cyan-500/10 text-cyan-500" />
-        <MiniKpi icon={MapPin} label="En curso" value={k.sites_in_progress} color="bg-amber-500/10 text-amber-500" />
-        <MiniKpi icon={CheckCircle} label="Listos facturar" value={k.sites_ready_to_invoice} color="bg-emerald-500/10 text-emerald-500" />
+        <MiniKpi icon={CalendarDays} label="Sites hoy" value={k.sites_today} color="bg-[hsl(var(--status-info-bg))] text-[hsl(var(--status-info))]" />
+        <MiniKpi icon={Clock} label="Próx. 7 días" value={k.sites_next_days} color="bg-[hsl(var(--status-info-bg))] text-[hsl(var(--status-info))]" />
+        <MiniKpi icon={MapPin} label="En curso" value={k.sites_in_progress} color="bg-[hsl(var(--status-warning-bg))] text-[hsl(var(--status-warning))]" />
+        <MiniKpi icon={CheckCircle} label="Listos facturar" value={k.sites_ready_to_invoice} color="bg-[hsl(var(--status-success-bg))] text-[hsl(var(--status-success))]" />
       </div>
 
       {/* Filters */}
@@ -571,15 +569,15 @@ const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProp
         <p className="text-muted-foreground text-sm">Presupuestado (Trim.)</p>
         <p className="text-3xl font-bold text-foreground">{fmt(k.quoted_amount)}</p>
         <div className="mt-3 flex items-center gap-3 text-sm">
-          <span className="text-emerald-500 font-medium">{k.conversion_rate}% conversión</span>
+          <span className="text-emerald-600 dark:text-emerald-400 font-medium">{k.conversion_rate}% conversión</span>
           <span className="text-muted-foreground">·</span>
           <span className="text-foreground">{fmt(k.invoiced_amount)} facturado bruto</span>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <MiniKpi icon={Target} label="En negociación" value={k.quotes_in_negotiation} color="bg-amber-500/10 text-amber-500" />
-        <MiniKpi icon={CheckCircle} label="Sites p/ facturar" value={data.sites_ready?.length || 0} color="bg-emerald-500/10 text-emerald-500" />
+        <MiniKpi icon={Target} label="En negociación" value={k.quotes_in_negotiation} color="bg-[hsl(var(--status-warning-bg))] text-[hsl(var(--status-warning))]" />
+        <MiniKpi icon={CheckCircle} label="Sites p/ facturar" value={data.sites_ready?.length || 0} color="bg-[hsl(var(--status-success-bg))] text-[hsl(var(--status-success))]" />
       </div>
 
       <DashboardModule title="Notificaciones">
@@ -598,13 +596,13 @@ const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProp
             <button key={q.id} onClick={() => navigate(`/nexo-av/${userId}/quotes/${q.id}`)}
               className={cn("w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border",
                 "active:scale-[0.98] transition-all"
-              )} style={{ touchAction: "manipulation" }}>
+              )}>
               <div className="text-left min-w-0 flex-1">
                 <p className="font-medium text-foreground text-sm truncate">{q.client_name}</p>
                 <p className="text-xs text-muted-foreground">
                   {q.quote_number}
                   {q.days_since_update > 7 && (
-                    <span className="text-amber-500 ml-1.5">· {q.days_since_update}d sin actividad</span>
+                    <span className="text-[hsl(var(--status-warning))] ml-1.5">· {q.days_since_update}d sin actividad</span>
                   )}
                 </p>
               </div>
@@ -620,13 +618,12 @@ const MobileCommercialDashboard = ({ userName, userId, navigate }: DashboardProp
           <h2 className="text-sm font-medium text-muted-foreground">Sites listos para facturar</h2>
           {data.sites_ready.map((s) => (
             <button key={s.site_id} onClick={() => navigate(`/nexo-av/${userId}/projects/${s.project_id}?tab=planning`)}
-              className="w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border active:scale-[0.98] transition-all"
-              style={{ touchAction: "manipulation" }}>
+              className="w-full flex items-center justify-between p-4 rounded-xl bg-card border border-border active:scale-[0.98] transition-all">
               <div className="text-left min-w-0 flex-1">
                 <p className="font-medium text-foreground text-sm truncate">{s.project_name}{s.site_name ? ` — ${s.site_name}` : ""}</p>
                 <p className="text-xs text-muted-foreground">{s.client_name}</p>
               </div>
-              {s.linked_quote && <span className="text-sm font-semibold text-emerald-500 ml-3">{fmt(s.linked_quote.total)}</span>}
+              {s.linked_quote && <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 ml-3">{fmt(s.linked_quote.total)}</span>}
             </button>
           ))}
         </div>
@@ -669,9 +666,9 @@ const MobileTechnicianDashboard = ({ userName, userId, navigate }: DashboardProp
       <Greeting userName={userName} subtitle="Tu agenda de trabajo" />
 
       <div className="grid grid-cols-3 gap-2">
-        <MiniKpi icon={CalendarDays} label="Hoy" value={k.sites_today} color="bg-blue-500/10 text-blue-500" />
-        <MiniKpi icon={Clock} label="7 días" value={k.sites_next_7_days} color="bg-cyan-500/10 text-cyan-500" />
-        <MiniKpi icon={MapPin} label="En curso" value={k.sites_in_progress} color="bg-amber-500/10 text-amber-500" />
+        <MiniKpi icon={CalendarDays} label="Hoy" value={k.sites_today} color="bg-[hsl(var(--status-info-bg))] text-[hsl(var(--status-info))]" />
+        <MiniKpi icon={Clock} label="7 días" value={k.sites_next_7_days} color="bg-[hsl(var(--status-info-bg))] text-[hsl(var(--status-info))]" />
+        <MiniKpi icon={MapPin} label="En curso" value={k.sites_in_progress} color="bg-[hsl(var(--status-warning-bg))] text-[hsl(var(--status-warning))]" />
       </div>
 
       <DashboardModule title="Notificaciones">
@@ -684,12 +681,12 @@ const MobileTechnicianDashboard = ({ userName, userId, navigate }: DashboardProp
 
       {/* Open visits */}
       {data.open_visits?.length > 0 && (
-        <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-2">
-          <h3 className="text-sm font-semibold text-amber-500 flex items-center gap-2">
+        <div className="bg-[hsl(var(--status-warning-bg))] border border-[hsl(var(--status-warning)_/_0.3)] rounded-xl p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-[hsl(var(--status-warning))] flex items-center gap-2">
             <AlertCircle className="h-4 w-4" /> Visitas abiertas ({data.open_visits.length})
           </h3>
           {data.open_visits.map((v) => (
-            <div key={v.visit_id} className="text-xs flex justify-between py-1 border-b border-amber-500/10 last:border-0">
+            <div key={v.visit_id} className="text-xs flex justify-between py-1 border-b border-[hsl(var(--status-warning)_/_0.15)] last:border-0">
               <span className="text-foreground">{v.project_name} — {v.site_name}</span>
               <span className="text-muted-foreground">
                 {v.check_in_at ? new Date(v.check_in_at).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) : "—"}
@@ -722,10 +719,10 @@ const MobileTechnicianDashboard = ({ userName, userId, navigate }: DashboardProp
 // ============================================================
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   PLANNED: { label: "Planificado", color: "bg-muted text-muted-foreground" },
-  SCHEDULED: { label: "Programado", color: "bg-blue-500/10 text-blue-500" },
-  IN_PROGRESS: { label: "En curso", color: "bg-amber-500/10 text-amber-500" },
-  READY_TO_INVOICE: { label: "Listo facturar", color: "bg-emerald-500/10 text-emerald-500" },
-  INVOICED: { label: "Facturado", color: "bg-violet-500/10 text-violet-500" },
+  SCHEDULED: { label: "Programado", color: "bg-[hsl(var(--status-info-bg))] text-[hsl(var(--status-info))]" },
+  IN_PROGRESS: { label: "En curso", color: "bg-[hsl(var(--status-warning-bg))] text-[hsl(var(--status-warning))]" },
+  READY_TO_INVOICE: { label: "Listo facturar", color: "bg-[hsl(var(--status-success-bg))] text-[hsl(var(--status-success))]" },
+  INVOICED: { label: "Facturado", color: "bg-[hsl(var(--status-special-bg))] text-[hsl(var(--status-special))]" },
 };
 
 const MobileSiteCard = ({ site, userId, navigate, showFinancials = false, showContact = false }: {
@@ -734,8 +731,7 @@ const MobileSiteCard = ({ site, userId, navigate, showFinancials = false, showCo
   const cfg = STATUS_MAP[site.site_status] || { label: site.site_status, color: "bg-muted text-muted-foreground" };
   return (
     <button onClick={() => navigate(`/nexo-av/${userId}/projects/${site.project_id}?tab=planning`)}
-      className="w-full text-left p-4 rounded-xl bg-card border border-border active:scale-[0.98] transition-all"
-      style={{ touchAction: "manipulation" }}>
+      className="w-full text-left p-4 rounded-xl bg-card border border-border active:scale-[0.98] transition-all">
       <div className="flex items-center gap-2 mb-1">
         <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full", cfg.color)}>{cfg.label}</span>
         <span className="text-[10px] text-muted-foreground">{site.project_number}</span>
@@ -779,8 +775,7 @@ const QuickAction = ({ icon: Icon, label, stat, color, onPress }: {
   icon: LucideIcon; label: string; stat: number; color: string; onPress: () => void;
 }) => (
   <button onClick={onPress}
-    className="w-full flex items-center justify-between gap-3 p-4 rounded-xl bg-card border border-border active:scale-[0.98] transition-all"
-    style={{ touchAction: "manipulation" }}>
+    className="w-full flex items-center justify-between gap-3 p-4 rounded-xl bg-card border border-border active:scale-[0.98] transition-all">
     <div className="flex min-w-0 items-center gap-3">
       <div className={cn("shrink-0 p-2.5 rounded-xl", color)}><Icon className="h-5 w-5" /></div>
       <div className="min-w-0 text-left">

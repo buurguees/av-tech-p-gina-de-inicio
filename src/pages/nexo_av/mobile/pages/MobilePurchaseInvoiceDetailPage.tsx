@@ -156,7 +156,7 @@ const MobilePurchaseInvoiceDetailPage = () => {
   const hasArchivedDocument = !!invoice.archived_pdf_path;
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       {/* Header */}
       <div className="flex-shrink-0 px-4 py-3">
         <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ const MobilePurchaseInvoiceDetailPage = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-[80px] space-y-4">
+      <div className="mobile-scroll-area space-y-4">
         {/* Provider */}
         {providerRoute ? (
           <button
@@ -310,7 +310,7 @@ const MobilePurchaseInvoiceDetailPage = () => {
           {invoice.withholding_amount > 0 && (
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Retención IRPF</span>
-              <span className="text-sm text-red-400">-{formatCurrency(invoice.withholding_amount)}</span>
+              <span className="text-sm text-destructive">-{formatCurrency(invoice.withholding_amount)}</span>
             </div>
           )}
           <div className="flex justify-between pt-2 border-t border-border">
@@ -321,12 +321,12 @@ const MobilePurchaseInvoiceDetailPage = () => {
             <>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Pagado</span>
-                <span className="text-sm text-green-500">{formatCurrency(invoice.paid_amount)}</span>
+                <span className="text-sm text-emerald-600 dark:text-emerald-400">{formatCurrency(invoice.paid_amount)}</span>
               </div>
               {invoice.pending_amount > 0 && (
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Pendiente</span>
-                  <span className="text-sm text-amber-500">{formatCurrency(invoice.pending_amount)}</span>
+                  <span className="text-sm text-amber-600 dark:text-amber-400">{formatCurrency(invoice.pending_amount)}</span>
                 </div>
               )}
             </>

@@ -134,39 +134,30 @@ const MobileExpensesPage = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       {/* Header: KPIs + Search */}
       <div
-        className="flex-shrink-0 py-3 px-3 w-full bg-background/95 supports-[backdrop-filter]:backdrop-blur-sm"
+        className="mobile-sticky-header"
       >
         {/* KPI Cards */}
-        <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="mobile-kpi-grid mobile-kpi-grid-3">
           <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
             <div className="p-1.5 bg-yellow-500/10 rounded-lg text-yellow-500">
               <Clock className="h-4 w-4" />
             </div>
-            <div>
-              <span className="text-lg text-foreground font-semibold">{stats.pending}</span>
-              <p className="text-[10px] text-muted-foreground">Pendientes</p>
-            </div>
+            <span className="text-lg text-foreground font-semibold">{stats.pending}</span>
           </div>
           <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
             <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-500">
               <CheckCircle className="h-4 w-4" />
             </div>
-            <div>
-              <span className="text-lg text-foreground font-semibold">{stats.approved}</span>
-              <p className="text-[10px] text-muted-foreground">Aprobados</p>
-            </div>
+            <span className="text-lg text-foreground font-semibold">{stats.approved}</span>
           </div>
           <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
             <div className="p-1.5 bg-green-500/10 rounded-lg text-green-500">
               <Receipt className="h-4 w-4" />
             </div>
-            <div>
-              <span className="text-lg text-foreground font-semibold">{stats.paid}</span>
-              <p className="text-[10px] text-muted-foreground">Pagados</p>
-            </div>
+            <span className="text-lg text-foreground font-semibold">{stats.paid}</span>
           </div>
         </div>
 
@@ -178,7 +169,7 @@ const MobileExpensesPage = () => {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Buscar tickets / gastos..."
-              className="pl-9 h-8 bg-card border-border text-sm"
+              className="pl-9 h-10 bg-card border-border text-sm"
             />
           </div>
           <Button
@@ -198,7 +189,7 @@ const MobileExpensesPage = () => {
       </div>
 
       {/* List */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pt-3 pb-[80px] w-full h-full px-[15px]">
+      <div className="mobile-scroll-area space-y-2 pt-3">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -241,7 +232,7 @@ const MobileExpensesPage = () => {
                       </span>
                       <Badge
                         variant="outline"
-                        className={cn(statusInfo.className, "text-[10px] px-1.5 py-0")}
+                        className={cn(statusInfo.className, "w-[80px] justify-center flex-shrink-0 text-[10px] px-1.5 py-0")}
                       >
                         {statusInfo.label}
                       </Badge>

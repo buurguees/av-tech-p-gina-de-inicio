@@ -173,3 +173,12 @@ body.nexo-av-theme-dark .bottom-nav-item.active .bottom-nav-icon-wrapper {
     0 0 20px 2px rgba(255, 255, 255, 0.08),
     0 4px 12px rgba(0, 0, 0, 0.2);
 }
+
+/* ============================================
+   SCANNER MODE — oculta layout chrome
+   Se activa cuando MobileDocumentScanner monta
+   ============================================ */
+body.scanning-active .mobile-bottom-nav,
+body.scanning-active .mobile-site-header {
+  display: none !important;
+}

@@ -133,7 +133,7 @@ const MobileSupplierDetailPage = () => {
   const statusInfo = getSupplierStatusInfo(supplier.status);
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       {/* Header */}
       <div className="flex-shrink-0 px-4 py-3">
         <div className="flex items-center gap-2">
@@ -166,7 +166,7 @@ const MobileSupplierDetailPage = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-[80px] space-y-4">
+      <div className="mobile-scroll-area space-y-4">
         {/* Category */}
         {catInfo && (
           <div className="bg-card border border-border rounded-xl p-4">

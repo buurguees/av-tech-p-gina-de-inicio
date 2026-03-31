@@ -26,7 +26,7 @@ const MobileCalendarPage = () => {
   const monthLabel = format(currentMonth, "MMMM yyyy", { locale: es });
 
   return (
-    <div className="flex h-full w-full flex-col bg-background">
+    <div className="mobile-page-viewport bg-background">
       {/* Header compacto */}
       <div className="flex-shrink-0 border-b border-border bg-background/95 px-4 py-3 supports-[backdrop-filter]:backdrop-blur-sm">
         <div className="mb-2 flex items-center justify-between">
@@ -72,7 +72,7 @@ const MobileCalendarPage = () => {
       </div>
 
       {/* Contenido */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="mobile-scroll-area">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

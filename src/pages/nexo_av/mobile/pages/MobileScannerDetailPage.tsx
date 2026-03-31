@@ -62,6 +62,13 @@ const EXPENSE_CATEGORIES = [
   { value: "OTHER", label: "Otros" },
 ] as const;
 
+const TAX_RATES = [
+  { value: "0",  label: "0%",  hint: "Exento" },
+  { value: "4",  label: "4%",  hint: "Superred." },
+  { value: "10", label: "10%", hint: "Reducido" },
+  { value: "21", label: "21%", hint: "General" },
+] as const;
+
 function todayIso() {
   return new Date().toISOString().split("T")[0];
 }
@@ -189,6 +196,7 @@ const MobileScannerDetailPage = () => {
   const [concept, setConcept] = useState<string>("");
   const [issueDate, setIssueDate] = useState<string>(todayIso());
   const [totalAmount, setTotalAmount] = useState<string>("");
+  const [taxRate, setTaxRate] = useState<string>("21");
 
   // Fetch document
   const fetchDocument = useCallback(async () => {
@@ -266,7 +274,8 @@ const MobileScannerDetailPage = () => {
     void fetchProjectSites();
   }, [selectedProjectId]);
 
-  const canCreateDraft = !!(selectedProjectId && issueDate && totalAmount && parseFloat(totalAmount) > 0);
+  // Obligatorio: fecha + importe + categoría. Proyecto y concepto son opcionales.
+  const canCreateDraft = !!(issueDate && totalAmount && parseFloat(totalAmount) > 0 && expenseCategory);
 
   const handleSave = async () => {
     if (!document || !documentId) return;
@@ -284,7 +293,10 @@ const MobileScannerDetailPage = () => {
     try {
       // --- PATH A: crear borrador de gasto directamente ---
       if (canCreateDraft) {
-        const amount = parseFloat(totalAmount);
+        const totalWithIva = parseFloat(totalAmount);
+        const rate = parseFloat(taxRate);
+        // El RPC espera precio base (sin IVA). Calculamos desde el total con IVA.
+        const basePrice = rate > 0 ? totalWithIva / (1 + rate / 100) : totalWithIva;
         const categoryLabel = EXPENSE_CATEGORIES.find(c => c.value === expenseCategory)?.label ?? "Ticket";
         const lineConcept = concept.trim() || categoryLabel;
 
@@ -325,13 +337,13 @@ const MobileScannerDetailPage = () => {
           }
         }
 
-        // 3. Añadir línea con importe total (sin IVA desglosado — desktop puede revisar)
+        // 3. Añadir línea con precio base calculado e IVA seleccionado
         await supabase.rpc("add_purchase_invoice_line", {
           p_invoice_id: invoiceId,
           p_concept: lineConcept,
           p_quantity: 1,
-          p_unit_price: amount,
-          p_tax_rate: 0,
+          p_unit_price: Math.round(basePrice * 10000) / 10000, // 4 decimales
+          p_tax_rate: rate,
           p_withholding_tax_rate: 0,
           p_discount_percent: 0,
         });
@@ -347,16 +359,32 @@ const MobileScannerDetailPage = () => {
           .eq("id", documentId);
 
         toast({
-          title: "Gasto creado",
+          title: docType === "TICKET" ? "Ticket guardado" : "Factura guardada",
           description: `${ticketNumber} — listo para revisar desde el ordenador.`,
         });
 
-      // --- PATH B: solo vincular proyecto (comportamiento original) ---
+      // --- PATH B: guardar datos parciales para que desktop pueda completar ---
       } else {
         const foundProject = projects.find((p) => p.id === selectedProjectId);
         const suggestedProjectName = foundProject
           ? `${foundProject.project_name} (${foundProject.project_number})`
           : null;
+
+        // Construir resumen legible de lo que el usuario rellenó en mobile
+        const metaParts: string[] = [];
+        if (docType === "INVOICE") metaParts.push("📄 Factura");
+        else metaParts.push("🧾 Ticket");
+        if (concept.trim()) metaParts.push(concept.trim());
+        if (expenseCategory) {
+          const catLabel = EXPENSE_CATEGORIES.find(c => c.value === expenseCategory)?.label;
+          if (catLabel) metaParts.push(catLabel);
+        }
+        if (issueDate) metaParts.push(issueDate);
+        if (totalAmount && parseFloat(totalAmount) > 0) {
+          const ivaLabel = taxRate !== "0" ? ` (IVA ${taxRate}%)` : " (exento)";
+          metaParts.push(`${parseFloat(totalAmount).toFixed(2)}€${ivaLabel}`);
+        }
+        const notesValue = metaParts.length > 1 ? metaParts.join(" · ") : null;
 
         const { error: updateError } = await supabase
           .from("scanned_documents")
@@ -364,16 +392,15 @@ const MobileScannerDetailPage = () => {
             suggested_project_id: selectedProjectId || null,
             suggested_site_id: selectedSiteId || null,
             suggested_project_name: suggestedProjectName,
+            notes: notesValue,
           } as any)
           .eq("id", documentId);
 
         if (updateError) throw updateError;
 
         toast({
-          title: selectedProjectId ? "Proyecto vinculado" : "Cambios guardados",
-          description: selectedProjectId
-            ? "Completa proveedor, importe y fecha desde el escáner de escritorio."
-            : "El documento queda pendiente de completar.",
+          title: "Datos guardados",
+          description: "El documento queda pendiente. Añade el importe desde el ordenador para finalizar.",
         });
       }
 
@@ -429,6 +456,7 @@ const MobileScannerDetailPage = () => {
 
   const isAssigned = document.status === "ASSIGNED";
 
+  // Permitir guardar si tenemos los datos mínimos (fecha + importe), o si hay proyecto seleccionado como fallback
   const canSave = canCreateDraft || !!selectedProjectId;
 
   return (
@@ -475,21 +503,18 @@ const MobileScannerDetailPage = () => {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto py-4 space-y-5 pb-4">
-
-        {/* Preview */}
-        <div className="space-y-2">
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Vista previa
-          </Label>
-          <div className="bg-card border border-border rounded-xl p-3">
+      {/* Content — mobile-scroll-area para scroll limpio sin colisiones */}
+      <div className="mobile-scroll-area px-0">
+        {/* Preview compacto */}
+        <div className="px-4 pt-4 pb-2">
+          <div className="bg-card border border-border rounded-xl overflow-hidden" style={{ maxHeight: '200px' }}>
             <FilePreview filePath={document.file_path} />
           </div>
         </div>
 
+        {/* Estado: ya asignado */}
         {isAssigned && (
-          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center">
+          <div className="mx-4 mt-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center">
             <CheckCircle2 className="h-6 w-6 text-emerald-500 mx-auto mb-1" />
             <p className="text-sm font-medium text-emerald-600">Documento procesado</p>
             <p className="text-xs text-muted-foreground mt-0.5">Este documento ya ha sido asignado.</p>
@@ -498,11 +523,8 @@ const MobileScannerDetailPage = () => {
 
         {!isAssigned && (
           <>
-            {/* Tipo de documento */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Tipo de documento
-              </Label>
+            {/* ── Tipo de documento ───────────────── */}
+            <div className="px-4 pt-4 pb-1">
               <div className="flex gap-2">
                 {(["TICKET", "INVOICE"] as const).map((type) => (
                   <button
@@ -522,147 +544,215 @@ const MobileScannerDetailPage = () => {
               </div>
             </div>
 
-            {/* Categoría */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                <Tag className="h-3.5 w-3.5" />
-                Categoría {docType === "TICKET" ? "(opcional)" : ""}
-              </Label>
-              <Select value={expenseCategory} onValueChange={setExpenseCategory}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Seleccionar categoría..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {EXPENSE_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* ── Obligatorio ─────────────────────── */}
+            <div className="px-4 pt-4">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+                Obligatorio
+              </p>
+              <div className="space-y-3">
 
-            {/* Concepto / Comercio */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                {docType === "TICKET" ? "Comercio / Establecimiento (opcional)" : "Concepto (opcional)"}
-              </Label>
-              <Input
-                value={concept}
-                onChange={(e) => setConcept(e.target.value)}
-                placeholder={docType === "TICKET" ? "Repsol, McDonald's, Leroy Merlin..." : "Descripción breve..."}
-                className="bg-card border-border"
-              />
-            </div>
-
-            {/* Fecha + Importe en fila */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  Fecha
-                </Label>
-                <Input
-                  type="date"
-                  value={issueDate}
-                  onChange={(e) => setIssueDate(e.target.value)}
-                  className="bg-card border-border"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                  <Euro className="h-3.5 w-3.5" />
-                  Importe total
-                </Label>
-                <Input
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="0.01"
-                  value={totalAmount}
-                  onChange={(e) => setTotalAmount(e.target.value)}
-                  placeholder="0,00"
-                  className="bg-card border-border"
-                />
-              </div>
-            </div>
-
-            {/* Indicador de modo: crear borrador vs solo vincular */}
-            {canCreateDraft ? (
-              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
-                <p className="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed font-medium">
-                  ✓ Se creará un borrador de gasto con proyecto, categoría e importe. Solo necesitarás revisarlo desde el ordenador.
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {selectedProjectId
-                    ? "Añade importe y fecha para crear el borrador directamente. O guarda solo la vinculación al proyecto."
-                    : "Selecciona un proyecto y, opcionalmente, rellena importe y fecha para crear el borrador de gasto."}
-                </p>
-              </div>
-            )}
-
-            {/* Proyecto */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Proyecto (opcional)
-              </Label>
-              <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Seleccionar proyecto..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.length === 0 ? (
-                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                      No hay proyectos disponibles
-                    </div>
-                  ) : (
-                    projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.project_name} ({project.project_number})
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Sitio (multi-site) */}
-            {selectedProjectId && projectSiteMode === "MULTI_SITE" && projectSites.length > 0 && (
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5" />
-                  Sitio
-                </Label>
-                <Select value={selectedSiteId} onValueChange={setSelectedSiteId}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar sitio..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {projectSites.map((site) => (
-                      <SelectItem key={site.id} value={site.id}>
-                        {site.site_name}{site.city ? ` - ${site.city}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Sitio (single-site, solo lectura) */}
-            {selectedProjectId && projectSiteMode === "SINGLE_SITE" && projectSites.length > 0 && (
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5" />
-                  Sitio
-                </Label>
-                <div className="w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground bg-card">
-                  {projectSites[0]?.site_name}{projectSites[0]?.city ? ` - ${projectSites[0].city}` : ""}
+                {/* Categoría */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Tag className="h-3.5 w-3.5" />
+                    Categoría *
+                  </Label>
+                  <Select value={expenseCategory} onValueChange={setExpenseCategory}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleccionar categoría..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXPENSE_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {/* Fecha */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    Fecha *
+                  </Label>
+                  <Input
+                    type="date"
+                    value={issueDate}
+                    onChange={(e) => setIssueDate(e.target.value)}
+                    className="bg-card border-border"
+                  />
+                </div>
+
+                {/* Importe + IVA en fila */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                      <Euro className="h-3.5 w-3.5" />
+                      Importe total *
+                    </Label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      value={totalAmount}
+                      onChange={(e) => setTotalAmount(e.target.value)}
+                      placeholder="0,00"
+                      className="bg-card border-border"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      IVA *
+                    </Label>
+                    <div className="grid grid-cols-2 gap-1">
+                      {TAX_RATES.map((t) => (
+                        <button
+                          key={t.value}
+                          onClick={() => setTaxRate(t.value)}
+                          className={cn(
+                            "py-2 rounded-lg text-xs font-semibold border transition-all",
+                            taxRate === t.value
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-card text-muted-foreground border-border"
+                          )}
+                          style={{ touchAction: 'manipulation' }}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Resumen base / IVA / total */}
+                {totalAmount && parseFloat(totalAmount) > 0 && (
+                  <div className="rounded-lg bg-muted/40 px-3 py-2 flex items-center justify-between text-xs text-muted-foreground gap-2">
+                    {(() => {
+                      const total = parseFloat(totalAmount);
+                      const rate = parseFloat(taxRate);
+                      const base = rate > 0 ? total / (1 + rate / 100) : total;
+                      const ivaAmt = total - base;
+                      return (
+                        <>
+                          <span>Base <strong className="text-foreground">{base.toFixed(2)}€</strong></span>
+                          <span className="text-border">·</span>
+                          <span>IVA <strong className="text-foreground">{ivaAmt.toFixed(2)}€</strong></span>
+                          <span className="text-border">·</span>
+                          <span>Total <strong className="text-foreground">{total.toFixed(2)}€</strong></span>
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+
               </div>
-            )}
+            </div>
+
+            {/* Indicador de estado */}
+            <div className="px-4 pt-3">
+              {canCreateDraft ? (
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
+                  <p className="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed font-medium">
+                    ✓ Listo para guardar. Se creará el borrador para revisar desde el ordenador.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+                  <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+                    Rellena <strong>categoría</strong>, <strong>fecha</strong> e <strong>importe</strong> para guardar.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* ── Opcional ────────────────────────── */}
+            <div className="px-4 pt-5">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+                Opcional
+              </p>
+              <div className="space-y-3">
+
+                {/* Concepto / Comercio */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    {docType === "TICKET" ? "Comercio / Establecimiento" : "Concepto"}
+                  </Label>
+                  <Input
+                    value={concept}
+                    onChange={(e) => setConcept(e.target.value)}
+                    placeholder={docType === "TICKET" ? "Repsol, McDonald's, Leroy Merlin..." : "Descripción breve..."}
+                    className="bg-card border-border"
+                  />
+                </div>
+
+                {/* Proyecto */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    Proyecto
+                  </Label>
+                  <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Vincular a proyecto..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects.length === 0 ? (
+                        <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                          No hay proyectos disponibles
+                        </div>
+                      ) : (
+                        projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.project_name} ({project.project_number})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sitio multi-site */}
+                {selectedProjectId && projectSiteMode === "MULTI_SITE" && projectSites.length > 0 && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Sitio
+                    </Label>
+                    <Select value={selectedSiteId} onValueChange={setSelectedSiteId}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleccionar sitio..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projectSites.map((site) => (
+                          <SelectItem key={site.id} value={site.id}>
+                            {site.site_name}{site.city ? ` - ${site.city}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Sitio single-site (solo lectura) */}
+                {selectedProjectId && projectSiteMode === "SINGLE_SITE" && projectSites.length > 0 && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" />
+                      Sitio
+                    </Label>
+                    <div className="w-full rounded-lg border border-border px-3 py-2 text-sm text-foreground bg-card">
+                      {projectSites[0]?.site_name}{projectSites[0]?.city ? ` - ${projectSites[0].city}` : ""}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </div>
+
+            {/* Respiro final */}
+            <div className="h-6" />
           </>
         )}
       </div>

@@ -237,9 +237,9 @@ const MobileClientsPage = () => {
   return (
     <div className="mobile-page-viewport">
       {/* Fixed Header Section: KPIs + Search - Always visible, never scrolls */}
-      <div className="sticky top-0 z-20 flex-shrink-0 py-3 bg-background/95 backdrop-blur-sm border-b border-border/40 -mx-4 px-4 mb-2">
+      <div className="mobile-sticky-header">
         {/* KPI Cards - Compact: Icon + Number/Value */}
-        <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="mobile-kpi-grid mobile-kpi-grid-3">
           {/* Facturación Media por Cliente - Principal */}
           <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
             <div className="p-1.5 bg-green-500/10 rounded-lg text-green-500">
@@ -281,7 +281,7 @@ const MobileClientsPage = () => {
         </div>
 
         {/* Second Row of KPIs */}
-        <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="mobile-kpi-grid mobile-kpi-grid-3">
           {/* Clientes Nuevos del Mes */}
           <div className="bg-card border border-border rounded-xl px-3 py-2 flex items-center gap-2">
             <div className="p-1.5 bg-yellow-500/10 rounded-lg text-yellow-500">

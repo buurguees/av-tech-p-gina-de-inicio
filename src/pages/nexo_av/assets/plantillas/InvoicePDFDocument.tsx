@@ -9,17 +9,8 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
   Image,
 } from "@react-pdf/renderer";
-
-// Register font
-Font.register({
-  family: "Helvetica",
-  fonts: [
-    { src: "https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5Q.ttf" },
-  ],
-});
 
 export interface InvoiceLine {
   id: string;
@@ -116,7 +107,9 @@ export interface InvoicePDFDocumentProps {
 // Styles for PDF
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    paddingTop: 40,
+    paddingHorizontal: 40,
+    paddingBottom: 100,
     fontSize: 10,
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff",
@@ -392,7 +385,27 @@ const styles = StyleSheet.create({
     right: 40,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
-    paddingTop: 12,
+    paddingTop: 10,
+  },
+  footerColumns: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 15,
+  },
+  footerColumn: {
+    flex: 1,
+  },
+  footerTitle: {
+    fontSize: 7,
+    fontWeight: "bold",
+    color: "#888",
+    textTransform: "uppercase",
+    marginBottom: 3,
+  },
+  footerText: {
+    fontSize: 8,
+    color: "#666",
+    marginBottom: 2,
   },
   pageNumber: {
     position: "absolute",
@@ -602,24 +615,29 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
           </View>
         )}
 
-        {/* Table */}
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.headerText, { flex: hasDiscount ? 2.5 : 3 }]}>CONCEPTO</Text>
-            <Text style={[styles.headerText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>CANTIDAD</Text>
-            <Text style={[styles.headerText, styles.colPrice]}>PRECIO</Text>
-            {hasDiscount && (
-              <Text style={[styles.headerText, styles.colDiscount]}>DTO %</Text>
-            )}
-            <Text style={[styles.headerText, styles.colTax]}>IVA</Text>
-            <Text style={[styles.headerText, styles.colTotal]}>SUBTOTAL</Text>
-          </View>
+        {/* Table Header - separado del contenedor de filas para evitar que react-pdf
+            trate el bloque entero como indivisible cuando hay wrap={false} en las filas */}
+        <View style={styles.tableHeader}>
+          <Text style={[styles.headerText, { flex: hasDiscount ? 2.5 : 3 }]}>CONCEPTO</Text>
+          <Text style={[styles.headerText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>CANTIDAD</Text>
+          <Text style={[styles.headerText, styles.colPrice]}>PRECIO</Text>
+          {hasDiscount && (
+            <Text style={[styles.headerText, styles.colDiscount]}>DTO %</Text>
+          )}
+          <Text style={[styles.headerText, styles.colTax]}>IVA</Text>
+          <Text style={[styles.headerText, styles.colTotal]}>SUBTOTAL</Text>
+        </View>
 
+        {/* Table Rows - contenedor explícitamente wrappable */}
+        <View style={{ marginBottom: 20 }} wrap={true}>
           {lines.map((line) => (
-            <View key={line.id} style={styles.tableRow}>
-              <Text style={[styles.cellText, { flex: hasDiscount ? 2.5 : 3 }]}>
-                {(line.concept || "").toUpperCase()}
-              </Text>
+            <View key={line.id} style={styles.tableRow} wrap={false}>
+              <View style={{ flex: hasDiscount ? 2.5 : 3 }}>
+                <Text style={styles.cellText}>{(line.concept || "").toUpperCase()}</Text>
+                {Boolean(line.description) && (
+                  <Text style={styles.cellDescription}>{line.description}</Text>
+                )}
+              </View>
               <Text style={[styles.cellText, { flex: hasDiscount ? 0.8 : 1, textAlign: "center" }]}>
                 {line.quantity}
               </Text>
@@ -725,8 +743,43 @@ export const InvoicePDFDocument = ({ invoice, lines, client, company, project, p
           </View>
         </View>
 
-        {/* Footer */}
-        <View style={styles.footer} />
+        {/* Footer - fixed para que aparezca en todas las páginas */}
+        <View style={styles.footer} fixed>
+          <View style={styles.footerColumns}>
+            <View style={styles.footerColumn}>
+              <Text style={styles.footerTitle}>EMPRESA</Text>
+              <Text style={styles.footerText}>
+                {company?.legal_name || company?.commercial_name}
+              </Text>
+              {Boolean(company?.tax_id) && (
+                <Text style={styles.footerText}>NIF: {company.tax_id}</Text>
+              )}
+            </View>
+            <View style={styles.footerColumn}>
+              <Text style={styles.footerTitle}>CONTACTO</Text>
+              {Boolean(company?.billing_email) && (
+                <Text style={styles.footerText}>{company.billing_email}</Text>
+              )}
+              {Boolean(company?.billing_phone) && (
+                <Text style={styles.footerText}>{company.billing_phone}</Text>
+              )}
+              {Boolean(company?.website) && (
+                <Text style={styles.footerText}>{company.website}</Text>
+              )}
+            </View>
+            <View style={styles.footerColumn}>
+              <Text style={styles.footerTitle}>DIRECCIÓN FISCAL</Text>
+              {Boolean(company?.fiscal_address) && (
+                <Text style={styles.footerText}>{company.fiscal_address}</Text>
+              )}
+              {Boolean(company?.fiscal_postal_code) && Boolean(company?.fiscal_city) && (
+                <Text style={styles.footerText}>
+                  {company.fiscal_postal_code} {company.fiscal_city}
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
 
         {/* Page Number */}
         <Text

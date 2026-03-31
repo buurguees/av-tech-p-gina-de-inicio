@@ -131,7 +131,7 @@ const MobileExpenseDetailPage = () => {
   const hasArchivedDocument = !!expense.archived_pdf_path;
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="mobile-page-viewport">
       {/* Header */}
       <div className="flex-shrink-0 px-4 py-3">
         <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ const MobileExpenseDetailPage = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-[80px] space-y-4">
+      <div className="mobile-scroll-area space-y-4">
         {/* Beneficiary */}
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center gap-3">
@@ -241,13 +241,13 @@ const MobileExpenseDetailPage = () => {
           {expense.paid_amount > 0 && (
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Pagado</span>
-              <span className="text-sm text-green-500">{formatCurrency(expense.paid_amount)}</span>
+              <span className="text-sm text-emerald-600 dark:text-emerald-400">{formatCurrency(expense.paid_amount)}</span>
             </div>
           )}
           {expense.pending_amount > 0 && (
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Pendiente</span>
-              <span className="text-sm text-amber-500">{formatCurrency(expense.pending_amount)}</span>
+              <span className="text-sm text-amber-600 dark:text-amber-400">{formatCurrency(expense.pending_amount)}</span>
             </div>
           )}
         </div>

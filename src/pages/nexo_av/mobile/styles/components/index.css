@@ -5,5 +5,10 @@
 /* Layout Components */
 @import './layout/bottom-navigation.css';
 
-/* Status Badges - Import from desktop for consistency */
+/* Status Badges — importados desde desktop para garantizar
+   consistencia visual cross-platform. Los tokens de color
+   (--status-*, --sales-*, --purchase-*) se definen en
+   variables.css con los mismos valores que desktop. */
 @import '../../../desktop/styles/components/common/status-badges.css';
+@import '../../../desktop/styles/components/common/sales-status-badges.css';
+@import '../../../desktop/styles/components/common/purchase-status-badges.css';

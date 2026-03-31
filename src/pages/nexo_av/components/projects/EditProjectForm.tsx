@@ -145,7 +145,10 @@ export const EditProjectForm = ({
 
   const generatedProjectName = useMemo(() => {
     const parts: string[] = [];
-    if (project.project_number) parts.push(project.project_number);
+    if (project.project_number) {
+      const shortMatch = project.project_number.match(/(\d{6})$/);
+      parts.push(shortMatch ? shortMatch[1] : project.project_number);
+    }
     if (selectedClient?.company_name) parts.push(selectedClient.company_name);
     else if (project.client_name) parts.push(project.client_name);
     if (clientOrderNumber?.trim()) parts.push(clientOrderNumber.trim());
