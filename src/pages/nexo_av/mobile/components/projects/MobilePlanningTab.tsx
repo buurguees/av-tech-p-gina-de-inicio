@@ -39,7 +39,10 @@ import {
   ChevronDown,
   ChevronUp,
   Filter,
+  Camera,
 } from "lucide-react";
+import UploadDocumentDialog from "@/pages/nexo_av/shared/components/UploadDocumentDialog";
+import { useInstallationDocuments } from "@/pages/nexo_av/shared/hooks/useInstallationDocuments";
 import {
   STATUS_COLORS,
   STATUS_LABELS,
@@ -767,6 +770,9 @@ const MobileSiteCard = ({
         </div>
       )}
 
+      {/* Documentación compacta */}
+      <MobileInstallationDocSummary siteId={site.id} projectId={projectId} userId={userId} />
+
       {/* Assignment Dialog */}
       <Dialog open={assignDialog} onOpenChange={setAssignDialog}>
         <DialogContent className="max-w-[90vw] rounded-xl">
@@ -865,6 +871,78 @@ const MobileSiteCard = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+};
+
+// ─── Documentación compacta móvil ────────────────────────────────────────────
+
+const MobileInstallationDocSummary = ({
+  siteId,
+  projectId,
+  userId,
+}: {
+  siteId: string;
+  projectId: string;
+  userId: string | undefined;
+}) => {
+  const navigate = useNavigate();
+  const [uploadOpen, setUploadOpen] = useState(false);
+
+  const { summary, loading, uploading, uploadDocument } =
+    useInstallationDocuments(siteId);
+
+  const totalDocs = summary?.total_documents ?? 0;
+  const phasesWithDocs = summary?.phases.filter((p) => p.doc_count > 0).length ?? 0;
+
+  return (
+    <div className="mt-3 bg-card border border-border rounded-xl p-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Camera className="h-4 w-4 text-primary" />
+          <span className="text-sm font-semibold text-foreground">Documentación</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            className="h-7 px-2.5 text-xs rounded-lg border border-border text-foreground bg-background active:scale-95 transition-all"
+            onClick={() => setUploadOpen(true)}
+            disabled={uploading}
+          >
+            + Foto
+          </button>
+          <button
+            className="h-7 px-2.5 text-xs rounded-lg border border-border text-muted-foreground bg-background active:scale-95 transition-all"
+            onClick={() =>
+              navigate(`/nexo-av/${userId}/projects/${projectId}?tab=instalacion`)
+            }
+          >
+            Ver todo
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mx-auto" />
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">{totalDocs}</span> documento{totalDocs !== 1 ? "s" : ""}
+          {" · "}
+          <span className="font-medium text-foreground">{phasesWithDocs}</span>/4 fases
+          {(summary?.pending_qa ?? 0) > 0 && (
+            <span className="text-amber-600">
+              {" · "}<span className="font-medium">{summary!.pending_qa}</span> pendiente{summary!.pending_qa !== 1 ? "s" : ""}
+            </span>
+          )}
+        </p>
+      )}
+
+      <UploadDocumentDialog
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        siteId={siteId}
+        uploading={uploading}
+        onUpload={uploadDocument}
+      />
     </div>
   );
 };

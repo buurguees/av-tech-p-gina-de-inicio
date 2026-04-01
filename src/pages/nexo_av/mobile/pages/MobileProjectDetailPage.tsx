@@ -24,13 +24,15 @@ import {
   Edit,
   LayoutDashboard,
   Users,
-  Plus
+  Plus,
+  Camera
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getProjectStatusInfo } from "@/constants/projectStatuses";
 import { getQuoteStatusInfo } from "@/constants/quoteStatuses";
 import EditProjectSheet from "../components/projects/EditProjectSheet";
 import MobilePlanningTab from "../components/projects/MobilePlanningTab";
+import MobileInstallationTab from "../components/projects/MobileInstallationTab";
 import MobileSitesTab from "../components/projects/MobileSitesTab";
 import { MobileEmptyState, MobileListCard, MobileMetricCard, MobileSectionCard } from "../components/common/MobileUiBlocks";
 import { getSalesDocumentStatusInfo, calculateCollectionStatus, getCollectionStatusInfo } from "@/constants/salesInvoiceStatuses";
@@ -79,7 +81,7 @@ interface ProjectSite {
   site_name: string;
 }
 
-type TabId = 'resumen' | 'planificacion' | 'sitios' | 'presupuestos' | 'facturas' | 'tecnicos';
+type TabId = 'resumen' | 'planificacion' | 'sitios' | 'instalacion' | 'presupuestos' | 'facturas' | 'tecnicos';
 
 interface Tab {
   id: TabId;
@@ -95,6 +97,7 @@ const TABS: Tab[] = [
   { id: 'sitios', label: 'Sitios', icon: MapPin, iconOnly: true },
   { id: 'presupuestos', label: 'Presupuestos', icon: FileText },
   { id: 'facturas', label: 'Facturas', icon: Receipt },
+  { id: 'instalacion', label: 'Instalación', icon: Camera, iconOnly: true },
   { id: 'tecnicos', label: 'Técnicos', icon: Users, iconOnly: true },
 ];
 
@@ -572,8 +575,15 @@ const MobileProjectDetailPage = () => {
           />
         )}
         
+        {activeTab === 'instalacion' && (
+          <MobileInstallationTab
+            projectId={projectId!}
+            siteMode={project?.site_mode}
+          />
+        )}
+
         {activeTab === 'presupuestos' && (
-          <QuotesList 
+          <QuotesList
             quotes={quotes}
             loading={loadingQuotes}
             onQuoteClick={(quoteId) => navigate(`/nexo-av/${userId}/quotes/${quoteId}`)}

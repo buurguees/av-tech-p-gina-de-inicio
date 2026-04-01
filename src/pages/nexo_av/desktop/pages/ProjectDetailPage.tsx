@@ -14,6 +14,7 @@ import ProjectHistoryTab from "../components/projects/ProjectHistoryTab";
 import ProjectSitesTab from "../components/projects/ProjectSitesTab";
 import ProjectPlanningTab from "../components/projects/ProjectPlanningTab";
 import ProjectTechniciansTab from "../components/projects/ProjectTechniciansTab";
+import ProjectInstallationTab from "../components/projects/ProjectInstallationTab";
 import ProjectStatusSuggestion from "../components/projects/ProjectStatusSuggestion";
 import EditProjectDialog from "../components/projects/EditProjectDialog";
 import { ActivityTimeline } from "../../assets/components/ActivityTimeline";
@@ -39,6 +40,7 @@ import {
   CheckCircle,
   Clock,
   History,
+  Camera,
 } from "lucide-react";
 
 interface ProjectDetail {
@@ -100,6 +102,7 @@ const ProjectDetailPageDesktop = () => {
     { value: "sitios", label: "Sitios", icon: MapPin },
     { value: "planificacion", label: "Planificación", icon: Calendar },
     { value: "tecnicos", label: "Técnicos", icon: Users },
+    { value: "instalacion", label: "Instalación", icon: Camera },
     { value: "presupuestos", label: "Presupuestos", icon: FileText },
     { value: "facturas", label: "Facturas", icon: Receipt },
     { value: "pedidos", label: "Pedidos", icon: ClipboardList },
@@ -396,6 +399,9 @@ const ProjectDetailPageDesktop = () => {
             )}
             {activeTab === "tecnicos" && projectId && (
               <ProjectTechniciansTab projectId={projectId} />
+            )}
+            {activeTab === "instalacion" && projectId && (
+              <ProjectInstallationTab projectId={projectId} siteMode={project?.site_mode} />
             )}
             {activeTab === "presupuestos" && projectId && (
               <ProjectQuotesList projectId={projectId} siteMode={project?.site_mode} defaultSiteName={project?.default_site_name} />
